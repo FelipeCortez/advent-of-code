@@ -7,5 +7,4 @@
 (let [lines (clojure.string/split-lines (slurp "2.in"))]
   (let [twos-and-threes (map two-and-three lines)]
     (println (* (count (filter identity (map first twos-and-threes)))
-                (count (filter identity (map second twos-and-threes))))))
-)
+                (count (filter identity (map second twos-and-threes)))))))
