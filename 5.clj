@@ -11,9 +11,9 @@
 
 (defn react [polymer]
   (reduce (fn [coll x]
-            (if (and (seq coll) (eq-upper-or-lower x (last coll)))
-              (vec (butlast coll))
-              (conj coll x)))
+            (if (and (seq coll) (eq-upper-or-lower x (first coll)))
+              (rest coll)
+              (cons x coll)))
           []
           polymer))
 
@@ -28,9 +28,8 @@
 
 (def a-to-z (map char (range (int \a) (inc (int \z)))))
 
-;; waaaaaay too slow
-(min (map #(->> polymer
-                         (remove-char %)
-                         react
-                         count)
-                   a-to-z))
+(apply min (map #(->> polymer
+                      (remove-char %)
+                      react
+                      count)
+                a-to-z))
