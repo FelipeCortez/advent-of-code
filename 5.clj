@@ -1,13 +1,10 @@
 (ns alchemical-reduction)
 
-;; part 1
-(def case-distance (- (int \A) (int \a)))
-
-(defn eq-upper-or-lower [x y]
-  (or (= (+ (int x) case-distance) (int y))
-      (= (- (int x) case-distance) (int y))))
-
 (def polymer (-> "5.in" slurp clojure.string/trim-newline))
+
+;; part 1
+(defn eq-upper-or-lower [x y]
+  (and (not= x y) (apply = (map clojure.string/lower-case [x y]))))
 
 (defn react [polymer]
   (reduce (fn [coll x]
