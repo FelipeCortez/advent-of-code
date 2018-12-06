@@ -28,14 +28,19 @@ for x in range(max_x):
             elif distance == grid[y][x][1]:
                 grid[y][x] = (None, distance)
 
+blacklist = set()
 count = defaultdict(int)
 for x in range(max_x):
     for y in range(max_y):
         count[grid[y][x][0]] += 1
 
-print(max_x, max_y)
-# just ignore what's close to the border
-print(sorted(count.items(), key=lambda kv: kv[1], reverse=True))
+        if x in (0, max_x - 1) or y in (0, max_y - 1):
+            blacklist.add(grid[y][x][0])
+
+print(list(filter(
+    lambda x: x[0] not in blacklist,
+    sorted(count.items(), key=lambda kv: kv[1], reverse=True)
+))[0])
 
 region_area = 0
 for x in range(max_x):
