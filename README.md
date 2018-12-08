@@ -8,3 +8,4 @@
 |   4 | [1, 2](4.py) • Python                   |
 |   5 | [1, 2](5.clj) • Clojure                 |
 |   6 | [1, 2](6.py) • Python                   |
+|   7 | [1, 2](7.clj) • Clojure                 |
