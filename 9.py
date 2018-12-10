@@ -1,46 +1,47 @@
 import re
 from collections import defaultdict
 
-players, last = map(int, re.findall(r"\d+", open("9.in").read()))
-#players, last = 30, 5807
-scores = defaultdict(int)
-current_idx = 0
-marbles = [0]
-marble_count = 0
+class Marble:
+    def __init__(self, value, cw=None, ccw=None):
+        self.value = value
+        self.cw =  self if cw is None else cw
+        self.ccw = self if ccw is None else ccw
 
-def restrict_inc(idx, total):
-    while idx > total:
-        idx -= total;
-    while idx < 0:
-        idx += total
-    return idx
+    def insert_cw(self, value):
+        new_marble = Marble(value, ccw=self, cw=self.cw)
+        new_marble.cw.ccw = new_marble
+        self.cw = new_marble
+        return new_marble
 
-def restrict(idx, total):
-    while idx >= total:
-        idx -= total;
-    while idx < 0:
-        idx += total
-    return idx
+    def remove_self(self):
+        self.ccw.cw = self.cw
+        self.cw.ccw = self.ccw
+        return self
 
-for play in range(last):
-    marble_count += 1
-    current_player = (play % players) + 1
+for line in open("9.in"):
+    players, last = map(int, re.findall(r"\d+", line))
+    print(players, last)
+    scores = defaultdict(int)
+    first = Marble(0)
+    current_player = 0
+    marble_count = 0
+    current_marble = first
 
-    if marble_count % 23 == 0:
-        scores[current_player] += marble_count
+    for play in range(last):
+        marble_count += 1
+        current_player = (play % players) + 1
 
-        idx_to_remove = restrict(current_idx - 7, len(marbles))
-        scores[current_player] += marbles.pop(restrict(current_idx - 7, len(marbles)))
-        current_idx = idx_to_remove
-    else:
-        current_idx = restrict_inc(current_idx + 2, len(marbles))
-        marbles.insert(current_idx, marble_count)
+        if marble_count % 23 == 0:
+            scores[current_player] += marble_count
 
-    # uncomment for the first example (9, 25) :)
-    # print(
-    #     f"[{current_player}]",
-    #     " ".join([f"({m})" if idx == current_idx else str(m)
-    #               for idx, m in enumerate(marbles)])
-    # )
+            for _ in range(7):
+                current_marble = current_marble.ccw
 
-print(max(scores.items(), key=lambda kv: kv[1]))
+            removed = current_marble.remove_self()
+
+            scores[current_player] += removed.value
+            current_marble = current_marble.cw
+        else:
+            current_marble = current_marble.cw.insert_cw(marble_count)
+
+    print(max(scores.items(), key=lambda kv: kv[1]))
