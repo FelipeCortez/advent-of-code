@@ -1,7 +1,7 @@
 claimed = set()
 overlapped = set()
 
-for line in open("3.in"):
+for line in open("03.in"):
     margin_left, margin_top = map(int, line.split()[2][:-1].split(","))
     size_left, size_top = map(int, line.split()[3].split("x"))
 

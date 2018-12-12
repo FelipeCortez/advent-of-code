@@ -2,7 +2,7 @@ from collections import defaultdict
 
 coords = []
 
-for line in open("6.in"):
+for line in open("06.in"):
     coords.append(tuple(map(int, line.split(","))))
 
 min_x = min([c[0] for c in coords])

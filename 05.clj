@@ -1,6 +1,6 @@
 (ns alchemical-reduction)
 
-(def polymer (-> "5.in" slurp clojure.string/trim-newline))
+(def polymer (-> "05.in" slurp clojure.string/trim-newline))
 
 ;; part 1
 (defn eq-upper-or-lower [x y]
@@ -14,7 +14,7 @@
           []
           polymer))
 
-(count (react polymer))
+(println (count (react polymer)))
 
 ;; part 2
 (defn lowercase-eq [& args]
@@ -25,8 +25,8 @@
 
 (def a-to-z (map char (range (int \a) (inc (int \z)))))
 
-(apply min (map #(->> polymer
-                      (remove-char %)
-                      react
-                      count)
-                a-to-z))
+(println (apply min (map #(->> polymer
+                               (remove-char %)
+                               react
+                               count)
+                         a-to-z)))

@@ -18,7 +18,7 @@ class Marble:
         self.cw.ccw = self.ccw
         return self
 
-for line in open("9.in"):
+for line in open("09.in"):
     players, last = map(int, re.findall(r"\d+", line))
     print(players, last)
     scores = defaultdict(int)

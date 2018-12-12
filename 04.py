@@ -12,7 +12,7 @@ def most_slept_minute(guard):
 
 guards = defaultdict(lambda: Guard(defaultdict(int)))
 
-for line in map(str.rstrip, sorted(open("4.in").readlines())):
+for line in map(str.rstrip, sorted(open("04.in").readlines())):
     minutes = int(line[15:17])
 
     if "begins" in line:

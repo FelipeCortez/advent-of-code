@@ -13,7 +13,7 @@
                        (apply str))
        :different (remove alleq pairs)})))
 
-(let [lines (clojure.string/split-lines (slurp "2.in"))]
+(let [lines (clojure.string/split-lines (slurp "02.in"))]
   (println (->> (all-pairs lines)
                 (map (partial apply same-and-different))
                 (filter #(= 1 (count (:different %))))

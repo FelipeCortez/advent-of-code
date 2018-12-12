@@ -1,7 +1,7 @@
 (ns the-sum-of-its-parts
   (:require [clojure.set :refer [difference union]]))
 
-(def pairs (->> "7.in"
+(def pairs (->> "07.in"
                 slurp
                 clojure.string/split-lines
                 (map #(rest (re-seq #"[A-Z]" %)))))

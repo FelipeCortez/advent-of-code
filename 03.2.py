@@ -3,7 +3,7 @@ from collections import defaultdict
 no_overlap = set()
 claimed = defaultdict(list)
 
-for line in open("3.in"):
+for line in open("03.in"):
     claim_id = int(line.split()[0][1:])
     margin_left, margin_top = map(int, line.split()[2][:-1].split(","))
     size_left, size_top = map(int, line.split()[3].split("x"))
