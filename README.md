@@ -13,3 +13,4 @@
 |    9 | [1, 2](09.py) • Python                    |
 |   10 | [1, 2](10.py) • Python                    |
 |   11 | [1, 2](11.clj) • Clojure                  |
+|   12 | [1, 2](12.py) • Python                    |
