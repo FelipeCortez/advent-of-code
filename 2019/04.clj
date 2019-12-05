@@ -3,13 +3,16 @@
 
 (def password-range (range 367479 (inc 893698)))
 
-(defn never-decreases? [n] (apply <= (map #(Integer/parseInt (str %)) (str n))))
+(defn never-decreases? [n] (->> (str n) (map #(Integer/parseInt (str %))) (apply <=)))
 
-(defn adjacent-digits? [n] (re-find #"([0-9])\1{1,}" (str n)))
+(defn adjacent-digits? [n] (->> (str n)
+                                (partition-by identity)
+                                (filter #(>= (count %) 2))
+                                seq))
 
 (defn group-of-just-two? [n] (->> (str n)
                                   (partition-by identity)
-                                  (filter #(= 2 (count %)))
+                                  (filter #(= (count %) 2))
                                   seq))
 
 ;; part 1
