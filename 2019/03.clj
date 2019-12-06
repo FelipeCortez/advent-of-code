@@ -34,8 +34,26 @@
                (update result (coord {:x :h, :y :v})
                        #(conj % [(pos (other-coord coord)) (map coord [pos new-pos])])))))))
 
-(defn crossings [[] wire2] )
+(defn between? [from to n]
+  (let [[from to] (sort [from to])]
+    (<= from n to)))
 
-(apply merge-with concat
-       (mapv (fn [wire] (relative->absolute (mapv segment-str->segment wire)))
-             (mapv split-commas (str/split-lines wires-test))))
+(defn crosses?
+  [[fixed1 [from1 to1]]
+   [fixed2 [from2 to2]]]
+  (and (between? from1 to1 fixed2)
+       (between? from2 to2 fixed1)))
+
+(defn overlaps?
+  [segment1 segment2]
+  (let [[fixed1 from-to1] segment1
+        [fixed2 from-to2] segment2
+        from-to1 (sort from-to1)
+        from-to2 (sort from-to2)
+        [before after] (sort-by first [from-to1 from-to2])]
+    (and (= fixed1 fixed2)
+         (<= (- (max (first from-to1) (first from-to2))
+                (min (second from-to1) (second from-to2))) 0))))
+
+(def segments (mapv (fn [wire] (relative->absolute (mapv segment-str->segment wire)))
+                    (mapv split-commas (str/split-lines wires-test))))
