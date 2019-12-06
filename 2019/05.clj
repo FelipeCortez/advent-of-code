@@ -47,14 +47,12 @@
                  output))
 
         (= opcode 4)
-        (let [[read-from] params]
+        (let [[read-from] params
+              [mode]      modes]
           (recur intcode
                  (+ 2 pointer)
-                 (conj output (nth intcode read-from))))))))
+                 (conj output (if (= \1 mode) read-from (nth intcode read-from)))))))))
 
-
-(run-until-halt [1002,4,3,4,33])
-(run-until-halt [3,0,4,0,99])
 
 ;; part 1
 (run-until-halt input)
