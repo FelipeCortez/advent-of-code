@@ -9,27 +9,35 @@
                 (map #(Integer/parseInt %))
                 (into [])))
 
+(def opcode->fn
+  {1  (fn sum [computer [op1 op2 store-at]]
+        (-> computer
+            (assoc-in [:intcode store-at] (+ (get-in computer [:intcode op1])
+                                             (get-in computer [:intcode op2])))
+            (update :pointer (partial + 4))))
+
+   2  (fn multiply [computer [op1 op2 store-at]]
+        (-> computer
+            (assoc-in [:intcode store-at] (* (get-in computer [:intcode op1])
+                                             (get-in computer [:intcode op2])))
+            (update :pointer (partial + 4))))
+
+   99 (fn halt [computer _] computer)})
+
 (defn run-until-halt [noun verb]
-  (let [alarm (-> input (assoc 1 noun) (assoc 2 verb))]
-    (loop [intcode alarm, pointer 0]
-      (let [[opcode op1 op2 store-at] (subvec intcode pointer)]
-        (cond
-          (= opcode 99)
-          intcode
-
-          (= opcode 1)
-          (recur (assoc intcode store-at (+ (nth intcode op1) (nth intcode op2)))
-                 (+ 4 pointer))
-
-          (= opcode 2)
-          (recur (assoc intcode store-at (* (nth intcode op1) (nth intcode op2)))
-                 (+ 4 pointer)))))))
+  (loop [computer {:intcode (-> input (assoc 1 noun) (assoc 2 verb)), :pointer 0}]
+    (let [{:keys [intcode pointer]} computer
+          opcode (nth intcode pointer)
+          params (subvec intcode (inc pointer))]
+      (if (= 99 opcode)
+        computer
+        (recur ((opcode->fn opcode) computer params))))))
 
 ;; part 1
-(first (run-until-halt 12 2))
+((comp first :intcode) (run-until-halt 12 2))
 
 ;; part 2
 (for [noun (range 100)
       verb (range 100)
-      :when (= 19690720 (first (run-until-halt noun verb)))]
+      :when (= 19690720 ((comp first :intcode) (run-until-halt noun verb)))]
   (+ (* 100 noun) verb))
