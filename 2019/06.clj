@@ -6,11 +6,10 @@
 (def orbit-map (->> (slurp "06.in")
                     (str/split-lines)
                     (map (fn [s] (map keyword (str/split s #"\)"))))
-                    (reduce (fn [m [orbited orbits]] (assoc m orbits orbited))
-                            {})))
+                    (reduce (fn [m [orbited orbits]] (assoc m orbits orbited)) {})))
 
 (defn orbits-number [m object]
-  (loop [object object,number 0]
+  (loop [object object, number 0]
     (if (object m)
       (recur (object m) (inc number))
       number)))
@@ -30,7 +29,7 @@
 (defn shortest [orbit-graph current visited to path]
   (let [visitable (clojure.set/difference (set (current orbit-graph)) visited)]
     (cond
-      (= current to)        (do (println (count path) (- (count path) 3) path) path)
+      (= current to)        (do (println (count path) (- (count path) 3) path) path) ; this feels like cheating, I hate it
       (not (seq visitable)) nil
       :else (reduce (fn [coll object]
                       (if-let [full-path (shortest orbit-graph object (conj visited object) to (conj path object))]
