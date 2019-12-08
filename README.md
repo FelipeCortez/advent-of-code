@@ -6,6 +6,9 @@
 |    2 | [1 + 2](2019/02.clj) • Clojure                      |
 |    4 | [1 + 2](2019/04.clj) • Clojure                      |
 |    5 | [1 + 2](2019/05.clj) • Clojure                      |
+|    6 | [1 + 2](2019/06.clj) • Clojure                      |
+|    7 | [1 + 2](2019/07.clj) • Clojure                      |
+|    8 | [1 + 2](2019/08.clj) • Clojure                      |
 
 # Advent of Code 2018
 
