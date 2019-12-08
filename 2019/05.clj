@@ -54,6 +54,28 @@
              (update :output #(conj % read-from*))
              (update :pointer (partial + 2)))))
 
+   5 (fn jump-if-true [computer [param jump-to]]
+       (let [[param* jump-to*] (resolve-params computer)]
+         (-> computer
+             (update :pointer (if (not= 0 param*) (constantly jump-to*) (partial + 3))))))
+
+   6 (fn jump-if-false [computer [param jump-to]]
+       (let [[param* jump-to*] (resolve-params computer)]
+         (-> computer
+             (update :pointer (if (= 0 param*) (constantly jump-to*) (partial + 3))))))
+
+   7 (fn less-than [computer [param1 param2 store-at]]
+       (let [[param1* param2*] (resolve-params computer)]
+         (-> computer
+             (assoc-in [:intcode store-at] (if (< param1* param2*) 1 0))
+             (update :pointer (partial + 4)))))
+
+   8 (fn less-than [computer [param1 param2 store-at]]
+       (let [[param1* param2*] (resolve-params computer)]
+         (-> computer
+             (assoc-in [:intcode store-at] (if (= param1* param2*) 1 0))
+             (update :pointer (partial + 4)))))
+
    99 (fn halt [computer _] computer)})
 
 (defn run-until-halt [program input]
@@ -65,89 +87,9 @@
         computer
         (recur ((opcode->fn opcode) computer params))))))
 
+;;; part 1
 (run-until-halt test-program [1])
 
-;;;;
+;;; part 2
+(run-until-halt test-program [5])
 
-#_(defn run-until-halt [program input]
-  (loop [intcode program, pointer 0, output []]
-    (let [[opcode+modes & params] (subvec intcode pointer)
-          [opcode modes]          (opcode-details opcode+modes)]
-      (cond
-        (= opcode 99)
-        {:intcode intcode
-         :output  output}
-
-        (= opcode 1)
-        (let [[op1 op2 store-at] params
-              [mode1 mode2]      modes]
-          (recur (assoc intcode store-at (+ (if (= 1 mode1) op1 (nth intcode op1))
-                                            (if (= 1 mode2) op2 (nth intcode op2))))
-                 (+ 4 pointer)
-                 output))
-
-        (= opcode 2)
-        (let [[op1 op2 store-at] params
-              [mode1 mode2]      modes]
-          (recur (assoc intcode store-at (* (if (= 1 mode1) op1 (nth intcode op1))
-                                            (if (= 1 mode2) op2 (nth intcode op2))))
-                 (+ 4 pointer)
-                 output))
-
-        (= opcode 3)
-        (let [[store-at] params]
-          (recur (assoc intcode store-at input)
-                 (+ 2 pointer)
-                 output))
-
-        (= opcode 4)
-        (let [[read-from] params
-              [mode]      modes
-              read-from   (if (= 1 mode) read-from (nth intcode read-from))]
-          (recur intcode
-                 (+ 2 pointer)
-                 (conj output read-from)))
-
-        (= opcode 5)
-        (let [[op jump-to]  params
-              [mode1 mode2] modes
-              op            (if (= 1 mode1) op (nth intcode op))
-              jump-to       (if (= 1 mode2) jump-to (nth intcode jump-to))]
-          (recur intcode
-                 (if (not= 0 op) jump-to (+ 3 pointer))
-                 output))
-
-        (= opcode 6)
-        (let [[op jump-to]  params
-              [mode1 mode2] modes
-              op            (if (= 1 mode1) op (nth intcode op))
-              jump-to       (if (= 1 mode2) jump-to (nth intcode jump-to))]
-          (recur intcode
-                 (if (= 0 op) jump-to (+ 3 pointer))
-                 output))
-
-        (= opcode 7)
-        (let [[op1 op2 store-at] params
-              [mode1 mode2]      modes
-              op1                (if (= 1 mode1) op1 (nth intcode op1))
-              op2                (if (= 1 mode2) op2 (nth intcode op2))
-              result             (if (< op1 op2) 1 0)]
-          (recur (assoc intcode store-at result)
-                 (+ 4 pointer)
-                 output))
-
-        (= opcode 8)
-        (let [[op1 op2 store-at] params
-              [mode1 mode2]      modes
-              op1                (if (= 1 mode1) op1 (nth intcode op1))
-              op2                (if (= 1 mode2) op2 (nth intcode op2))
-              result             (if (= op1 op2) 1 0)]
-          (recur (assoc intcode store-at result)
-                 (+ 4 pointer)
-                 output))))))
-
-;; part 1
-#_(run-until-halt test-program 1)
-
-;; part 2
-#_(run-until-halt test-program 5)
