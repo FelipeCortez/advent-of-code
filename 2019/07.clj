@@ -18,12 +18,6 @@
 
 (defn split-commas [s] (str/split s #","))
 
-(def test-program (->> (slurp "05.in")
-                       (str/trim-newline)
-                       (split-commas)
-                       (map #(Integer/parseInt %))
-                       (into [])))
-
 (defn to-int [char] (Integer/parseInt (str char)))
 
 (defn queue
@@ -120,5 +114,39 @@
      (apply max))
 
 ;;; part 2
-(->> (repeat 5 {:intcode [1 2 3] :pointer 0 :output []})
-     (mapv (fn [phase m] (assoc m :input [phase])) [5 6 7 8 9]))
+(defn run-until-halt-or-output [computer]
+  (loop [computer computer]
+    (let [{:keys [intcode pointer]} computer
+          [opcode+modes & params]   (subvec intcode pointer)
+          [opcode modes]            (opcode-details opcode+modes)]
+      (cond
+        (= 99 opcode)
+        (assoc computer :halted true)
+
+        (= 4 opcode)
+        ((opcode->fn opcode) computer params)
+
+        :else
+        (recur ((opcode->fn opcode) computer params))))))
+
+(defn compute-amp-feedback [phases]
+  (let [computers (repeat 5 {:intcode amp-program :pointer 0 :output [] :input (queue)})
+        computers (mapv (fn [phase m] (update m :input #(conj % phase))) phases computers)]
+    computers
+    (loop [computers computers
+           last-output 0
+           idx         0]
+      (let [computer (-> computers
+                         (nth idx)
+                         (update :input #(conj % last-output))
+                         (run-until-halt-or-output))]
+        (if (and (= 4 idx) (true? (:halted computer)))
+          (-> computers last :output last)
+          (recur (assoc computers idx computer)
+                 (-> computer :output last)
+                 (mod (inc idx) 5)))))))
+
+(->> (permutations (range 5 10))
+     (map compute-amp-feedback)
+     (apply max))
+
