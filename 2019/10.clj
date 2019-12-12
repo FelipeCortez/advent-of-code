@@ -13,10 +13,34 @@
 ....#
 ...##")
 
+(def dois
+".#..##.###...#######
+##.############..##.
+.#.######.########.#
+.###.#######.####.#.
+#####.##.#.##.###.##
+..#####..#.#########
+####################
+#.####....###.#.#.##
+##.#################
+#####.##.###..####..
+..######..##.#######
+####.##.####...##..#
+.#####..#.######.###
+##...#.##########...
+#.##########.#######
+.####.#.###.###.#.##
+....##.##.###..#####
+.#.#.###########.###
+#.#.#.#####.####.###
+###.##.####.##.#..##")
+
+(def input (slurp "10.in"))
+
 (defn get-xy [m x y] (get-in m [y x]))
 
 (def asteroid-map
-  (let [asteroids (read-asteroids um), h (count asteroids), w (count (first asteroids))]
+  (let [asteroids (read-asteroids input), h (count asteroids), w (count (first asteroids))]
     {:h h, :w w,:asteroids (into (sorted-set)
                                  (for [y (range h), x (range w), :when (= \# (get-xy asteroids x y))]
                                    [x y]))}))
@@ -44,4 +68,5 @@
                     #{}
                     other-asteroids)))))
 
-(count-visible asteroid-map [1 0])
+(apply max (map (fn [asteroid] (count-visible asteroid-map asteroid)) (:asteroids asteroid-map)))
+
