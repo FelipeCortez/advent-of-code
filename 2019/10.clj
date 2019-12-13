@@ -6,35 +6,6 @@
       str/trim-newline
       str/split-lines))
 
-(def um
-".#..#
-.....
-#####
-....#
-...##")
-
-(def dois
-".#..##.###...#######
-##.############..##.
-.#.######.########.#
-.###.#######.####.#.
-#####.##.#.##.###.##
-..#####..#.#########
-####################
-#.####....###.#.#.##
-##.#################
-#####.##.###..####..
-..######..##.#######
-####.##.####...##..#
-.#####..#.######.###
-##...#.##########...
-#.##########.#######
-.####.#.###.###.#.##
-....##.##.###..#####
-.#.#.###########.###
-#.#.#.#####.####.###
-###.##.####.##.#..##")
-
 (def input (slurp "10.in"))
 
 (defn get-xy [m x y] (get-in m [y x]))
@@ -52,7 +23,6 @@
     (if (zero? b) a,
         (recur b (mod a b)))))
 
-
 (defn blocked-positions [{:keys [h w]} [abs-ax abs-ay] [abs-x abs-y]]
   (let [rel-pos [(- abs-x abs-ax) (- abs-y abs-ay)]
         rel-gcd (gcd (first rel-pos) (second rel-pos))
@@ -60,13 +30,18 @@
     (rest (take-while (fn [[x y]] (and (<= 0 x (dec w)) (<= 0 y (dec h))))
                       (iterate (fn [pos] (mapv + pos rel-increment)) [abs-x abs-y])))))
 
-(defn count-visible [{:keys [h w asteroids] :as asteroid-map} asteroid]
+(defn visible [{:keys [h w asteroids] :as asteroid-map} asteroid]
   (let [other-asteroids (disj (set asteroids) asteroid)]
-    (count (clojure.set/difference
-            other-asteroids
-            (reduce (fn [s other-asteroid] (apply conj s (blocked-positions asteroid-map asteroid other-asteroid)))
-                    #{}
-                    other-asteroids)))))
+    (clojure.set/difference
+     other-asteroids
+     (reduce (fn [s other-asteroid] (apply conj s (blocked-positions asteroid-map asteroid other-asteroid)))
+             #{}
+             other-asteroids))))
 
-(apply max (map (fn [asteroid] (count-visible asteroid-map asteroid)) (:asteroids asteroid-map)))
+;;; part 1
+(apply max (map (fn [asteroid] (count (visible asteroid-map asteroid))) (:asteroids asteroid-map)))
 
+;;; part 2
+(let [chosen-one (apply max-key (fn [asteroid] (count (visible asteroid-map asteroid)))
+                        (:asteroids asteroid-map))]
+  (sort-by (fn [[x y]] (Math/toDegrees (Math/atan2 x y))) (visible asteroid-map chosen-one)))
