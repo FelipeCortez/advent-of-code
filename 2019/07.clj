@@ -16,15 +16,6 @@
   ([coll]
    (reduce conj clojure.lang.PersistentQueue/EMPTY coll)))
 
-(defn split-commas [s] (str/split s #","))
-
-(defn to-int [char] (Integer/parseInt (str char)))
-
-(defn queue
-  ([] (clojure.lang.PersistentQueue/EMPTY))
-  ([coll]
-   (reduce conj clojure.lang.PersistentQueue/EMPTY coll)))
-
 (defn opcode-details [opcode+modes]
   (let [op-str (str opcode+modes)
         opcode (Integer/parseInt (apply str (take-last 2 op-str)))
