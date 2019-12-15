@@ -42,6 +42,20 @@
 (apply max (map (fn [asteroid] (count (visible asteroid-map asteroid))) (:asteroids asteroid-map)))
 
 ;;; part 2
-(let [chosen-one (apply max-key (fn [asteroid] (count (visible asteroid-map asteroid)))
-                        (:asteroids asteroid-map))]
-  (sort-by (fn [[x y]] (Math/toDegrees (Math/atan2 x y))) (visible asteroid-map chosen-one)))
+(defn angle [x y]
+  "^: 0, >: 90, v: 180, <: 270"
+  (let [deg (+ (- (Math/toDegrees (Math/atan2 y x))) 90)]
+    (if (< deg 0)
+      (+ 360 deg)
+      deg)))
+
+(let [[ax ay :as chosen-one] (apply max-key (fn [asteroid] (count (visible asteroid-map asteroid)))
+                                    (:asteroids asteroid-map))]
+  (loop [asteroid-map asteroid-map
+         vaporized []]
+    (if (= 1 (count (:asteroids asteroid-map)))
+      (let [[x y] (nth vaporized (dec 200))] (+ (* 100 x) y))
+      (let [now-vaporized (sort-by (fn [[x y]] (angle (- x ax) (- ay y)))
+                                   (visible asteroid-map chosen-one))]
+        (recur (update asteroid-map :asteroids #(apply disj % now-vaporized))
+               (apply conj vaporized now-vaporized))))))
