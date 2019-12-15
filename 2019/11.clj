@@ -119,8 +119,7 @@
 (defn color-under-robot [painter]
   (get-in painter [:world (:position painter)] 0))
 
-;;; part 1
-(defn paint-until-halt [program]
+(defn paint-until-halt [program initial-color]
   (loop [computer {:intcode (vec->map program)
                    :pointer 0
                    :input (queue)
@@ -129,7 +128,7 @@
          painter  {:position [0 0]
                    :direction :up
                    :next-action :paint
-                   :world {}}]
+                   :world {[0 0] initial-color}}]
     (let [{:keys [intcode pointer relative-base output]} computer
           [opcode+modes & params]   (submap intcode pointer)
           [opcode modes]            (opcode-details opcode+modes)]
@@ -156,9 +155,25 @@
         :else
         (recur ((opcode->fn opcode) computer) painter)))))
 
+;;; part 1
 (-> painter-program
-    paint-until-halt
+    (paint-until-halt 0)
     :painter
     :world
     keys
     count)
+
+;;; part 2
+(defn draw [{world :world}]
+  (let [max-x (apply max (map ffirst world))
+        max-y (apply max (map (fn [[[_ y] _]] y) world))]
+    (->> (for [y (range (inc max-y)), x (range max-x)] (get world [x y] 0))
+         (partition max-x)
+         (map (fn [line] (apply str line)))
+         (map (fn [s] (clojure.string/replace s #"0" " ")))
+         (map (fn [s] (clojure.string/replace s #"1" "#"))))))
+
+(-> painter-program
+    (paint-until-halt 1)
+    :painter
+    draw)
