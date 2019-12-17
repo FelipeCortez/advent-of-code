@@ -18,8 +18,6 @@
                 str/split-lines
                 (mapv split-commas)))
 
-(def wires-test "R8,U5,L5,D3\nU7,R6,D4,L4")
-
 (defn relative->absolute [segments]
   (loop [pos      {:x 0 :y 0}
          segments segments
@@ -36,13 +34,17 @@
 
 (defn between? [from to n]
   (let [[from to] (sort [from to])]
-    (<= from n to)))
+    (and (<= from n to) n)))
 
 (defn crosses?
   [[fixed1 [from1 to1]]
    [fixed2 [from2 to2]]]
-  (and (between? from1 to1 fixed2)
-       (between? from2 to2 fixed1)))
+  (and (not= [0 0] [fixed1 fixed2])
+       (between? from1 to1 fixed2)
+       (between? from2 to2 fixed1)
+       {:x fixed2 :y fixed1}))
+
+(crosses? [0 [0 5]] [3 [0 3]])
 
 (defn overlaps?
   [segment1 segment2]
@@ -56,4 +58,11 @@
                 (min (second from-to1) (second from-to2))) 0))))
 
 (def segments (mapv (fn [wire] (relative->absolute (mapv segment-str->segment wire)))
-                    (mapv split-commas (str/split-lines wires-test))))
+                    wires))
+
+(apply min (map (fn [{:keys [x y]}] (+ (Math/abs x) (Math/abs y)))
+                (let [[{hs1 :h vs1 :v} {hs2 :h vs2 :v}] segments]
+                  (concat (for [h hs1 v vs2 :let [crosses (crosses? h v)] :when crosses]
+                            crosses)
+                          (for [h hs2 v vs1 :let [crosses (crosses? h v)] :when crosses]
+                            crosses)))))
