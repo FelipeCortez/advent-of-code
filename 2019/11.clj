@@ -3,12 +3,6 @@
 
 (defn split-commas [s] (str/split s #","))
 
-(def boost-program (->> (slurp "09.in")
-                        (str/trim-newline)
-                        (split-commas)
-                        (map #(Integer/parseInt %))
-                        (into [])))
-
 (defn to-int [char] (Integer/parseInt (str char)))
 
 (defn queue
@@ -111,7 +105,7 @@
 
 (def cw {:up :right, :right :down, :down :left, :left :up})
 
-(def ccw (clojure.set/map-invert cw-transitions))
+(def ccw (clojure.set/map-invert cw))
 
 (defn forward [{:keys [position direction] :as painter}]
   (assoc painter :position (mapv + position ({:up [0 -1], :right [1 0], :down [0 1], :left [-1 0]} direction))))
@@ -167,8 +161,8 @@
 (defn draw [{world :world}]
   (let [max-x (apply max (map ffirst world))
         max-y (apply max (map (fn [[[_ y] _]] y) world))]
-    (->> (for [y (range (inc max-y)), x (range max-x)] (get world [x y] 0))
-         (partition max-x)
+    (->> (for [y (range (inc max-y)), x (range (inc max-x))] (get world [x y] 0))
+         (partition (inc max-x))
          (map (fn [line] (apply str line)))
          (map (fn [s] (clojure.string/replace s #"0" " ")))
          (map (fn [s] (clojure.string/replace s #"1" "#"))))))
