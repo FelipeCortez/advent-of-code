@@ -145,14 +145,15 @@
         max-y (->> world (map (fn [[{y :y} _]] y)) (apply max))]
     (->> (for [y (range 0 (inc max-y)) x (range 0 (inc max-x))] (get world {:x x :y y}))
          (partition (inc max-x))
+         (map (fn [line] (map (fn [c] (nth [" " "X" "·" "T" "o"] (read-string (str c)))) line)))
          (map str/join)
-         (map (fn [s] (str/replace s #"0" " ")))
-         (map (fn [s] (str/replace s #"1" "X")))
-         (map (fn [s] (str/replace s #"2" "·")))
-         (map (fn [s] (str/replace s #"3" "_")))
-         (map (fn [s] (str/replace s #"4" "o")))
          (map println)
          doall)))
+
+(defn attract [this other]
+  (cond (= this other) 0
+        (< this other) 1
+        (> this other) -1))
 
 (defn play-until-halt [program]
   (loop [computer {:intcode       (vec->map program)
@@ -168,21 +169,24 @@
           [opcode modes]                                 (opcode-details opcode+modes)]
       (cond
         (= 99 opcode)
-        {:computer computer, :world (:world game)}
+        (first (filter (fn [[pos block]] (= {:x -1 :y 0} pos)) (:world game)))
 
         (= 3 opcode)
-        (do (draw-game (:world game))
+        (let [ball-x   (:x (ffirst (filter (fn [[pos block]] (= 3 block)) (:world game))))
+              paddle-x (:x (ffirst (filter (fn [[pos block]] (= 4 block)) (:world game))))]
+          (do
+            #_(draw-game (:world game)) ; uncomment for fun
             (recur (-> computer
-                       (update :input #(conj % (read-string (read-line))))
+                       (update :input #(conj % (attract ball-x paddle-x)))
                        ((opcode->fn opcode)))
-                   game))
+                   game)))
 
         (= 4 opcode)
         (let [computer ((opcode->fn opcode) computer)
-              game (case (first (get game :action))
-                     :set-x    (assoc-in game [:position :x] (first (:output computer)))
-                     :set-y    (assoc-in game [:position :y] (first (:output computer)))
-                     :set-tile (assoc-in game [:world (:position game)] (first (:output computer))))]
+              game     (case (first (get game :action))
+                         :set-x    (assoc-in game [:position :x] (first (:output computer)))
+                         :set-y    (assoc-in game [:position :y] (first (:output computer)))
+                         :set-tile (assoc-in game [:world (:position game)] (first (:output computer))))]
           (recur (update computer :output rest)
                  (update game :action rest)))
 

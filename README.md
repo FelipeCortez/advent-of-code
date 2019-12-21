@@ -14,6 +14,7 @@
 |   10 | [1 + 2](2019/10.clj) • Clojure                      |
 |   11 | [1 + 2](2019/11.clj) • Clojure                      |
 |   12 | [1 + 2](2019/12.clj) • Clojure                      |
+|   13 | [1 + 2](2019/13.clj) • Clojure                      |
 
 # Advent of Code 2018
 
