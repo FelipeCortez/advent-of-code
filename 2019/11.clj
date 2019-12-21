@@ -135,8 +135,8 @@
                painter)
 
         (= 4 opcode)
-        (let [computer ((opcode->fn opcode) (update computer :output rest))]
-          (recur computer
+        (let [computer ((opcode->fn opcode) computer)]
+          (recur (update computer :output rest)
                  (if (= (:next-action painter) :paint)
                    (-> painter
                        (assoc-in [:world (:position painter)] (first (:output computer)))
