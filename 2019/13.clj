@@ -137,3 +137,56 @@
      :world
      (filter (fn [[k v]] (= 2 v)))
      count)
+
+;;; part 2
+(defn draw-game
+  [world]
+  (let [max-x (->> world (map (fn [[{x :x} _]] x)) (apply max))
+        max-y (->> world (map (fn [[{y :y} _]] y)) (apply max))]
+    (->> (for [y (range 0 (inc max-y)) x (range 0 (inc max-x))] (get world {:x x :y y}))
+         (partition (inc max-x))
+         (map str/join)
+         (map (fn [s] (str/replace s #"0" " ")))
+         (map (fn [s] (str/replace s #"1" "X")))
+         (map (fn [s] (str/replace s #"2" "·")))
+         (map (fn [s] (str/replace s #"3" "_")))
+         (map (fn [s] (str/replace s #"4" "o")))
+         (map println)
+         doall)))
+
+(defn play-until-halt [program]
+  (loop [computer {:intcode       (vec->map program)
+                   :pointer       0
+                   :input         (queue)
+                   :output        '()
+                   :relative-base 0}
+         game     {:position {:x 0 :y 0}
+                   :action   (cycle [:set-x :set-y :set-tile])
+                   :world    {}}]
+    (let [{:keys [intcode pointer relative-base output]} computer
+          [opcode+modes & params]                        (submap intcode pointer)
+          [opcode modes]                                 (opcode-details opcode+modes)]
+      (cond
+        (= 99 opcode)
+        {:computer computer, :world (:world game)}
+
+        (= 3 opcode)
+        (do (draw-game (:world game))
+            (recur (-> computer
+                       (update :input #(conj % (read-string (read-line))))
+                       ((opcode->fn opcode)))
+                   game))
+
+        (= 4 opcode)
+        (let [computer ((opcode->fn opcode) computer)
+              game (case (first (get game :action))
+                     :set-x    (assoc-in game [:position :x] (first (:output computer)))
+                     :set-y    (assoc-in game [:position :y] (first (:output computer)))
+                     :set-tile (assoc-in game [:world (:position game)] (first (:output computer))))]
+          (recur (update computer :output rest)
+                 (update game :action rest)))
+
+        :else
+        (recur ((opcode->fn opcode) computer) game)))))
+
+(play-until-halt (assoc arcade-program 0 2))
