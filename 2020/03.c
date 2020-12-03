@@ -1,10 +1,8 @@
 #include <stdio.h>
 
-#define SLOPE 3
-
 int main(int argc, char *argv[])
 {
-  int c, idx, cursor, length, trees, right, down, line;
+  int c, idx, cursor, length, treesFound, right, down, line;
 
   if (argc == 1) {
     right = 3;
@@ -14,13 +12,13 @@ int main(int argc, char *argv[])
     sscanf(argv[2], "%d", &down);
   }
 
-  idx = trees = line = 0;
+  idx = treesFound = line = 0;
   length = -1;
   for (;;) {
     cursor = 0;
     while ((c = getchar()) != '\n') {
-      if (c == EOF) { printf("%d\n", trees); return 0; }
-      if (idx == cursor && ((line % down) == 0) && (c == '#')) { ++trees; }
+      if (c == EOF) { printf("%d\n", treesFound); return 0; }
+      if (idx == cursor && ((line % down) == 0) && (c == '#')) { ++treesFound; }
       ++cursor;
     }
 
