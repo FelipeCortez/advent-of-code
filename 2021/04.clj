@@ -38,18 +38,26 @@
                            (mapv (fn [line]
                                    (mapv read-string (str/split (str/trim line) #"\s+")))
                                  card)))))
-            cards)]
-  winning-sets-v
+            cards)
+
+      winning-order*
+      (atom [])]
   (reduce (fn [winning-sets-v n]
-            (mapv (fn [winning-sets]
-                    (mapv (fn [s]
-                            (let [s2 (disj s n)]
-                              (if-not (seq s2)
-                                (let [unmarked-sum
-                                      (apply + (disj (apply s/union winning-sets) n))]
-                                  (throw (ex-info "found"
-                                                  {:score (* n unmarked-sum)}))) s2)))
-                          winning-sets))
-                  winning-sets-v))
+            (->> winning-sets-v
+                 (mapv (fn [winning-sets]
+                         (let [winning-sets2
+                               (mapv (fn [s]
+                                       (let [s2 (disj s n)]
+                                         (if-not (seq s2)
+                                           (let [unmarked-sum (apply + (disj (apply s/union winning-sets) n))
+                                                 score        (* n unmarked-sum)]
+                                             (swap! winning-order* conj score)
+                                             nil)
+                                           s2)))
+                                     winning-sets)]
+                           (when (every? identity winning-sets2)
+                             winning-sets2))))
+                 (filterv identity)))
           winning-sets-v
-          numbers))
+          numbers)
+  ((juxt first last) @winning-order*))
