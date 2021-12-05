@@ -11,20 +11,32 @@
 0,0 -> 8,8
 5,5 -> 8,2")
 
+(defn smart-range [from to]
+  (if (> from to)
+    (range from (dec to) -1)
+    (range from (inc to))))
+
 @(def lines (map (fn [line]
-       (->> line
-            (re-seq #"(\d+),(\d+) -> (\d+),(\d+)")
-            first next (map read-string) (split-at 2)))
+                   (->> line
+                        (re-seq #"(\d+),(\d+) -> (\d+),(\d+)")
+                        first next (map read-string) (split-at 2)))
                  (clojure.string/split-lines (slurp "05.in"))))
 
-(defn points-in-line [[[x1 y1] [x2 y2]]]
-  (let [[x1 x2] (sort [x1 x2])
-        [y1 y2] (sort [y1 y2])]
+(defn points-in-line [diagonals? [[x1 y1] [x2 y2]]]
+  (let [[x1' x2'] (sort [x1 x2])
+        [y1' y2'] (sort [y1 y2])]
     (cond
       (= x1 x2)
-      (map vector (repeat x1) (range y1 (inc y2)))
+      (map vector (repeat x1') (range y1' (inc y2')))
 
       (= y1 y2)
-      (map vector (range x1 (inc x2)) (repeat y1)))))
+      (map vector (range x1' (inc x2')) (repeat y1'))
 
-(count (filter #(> % 1) (vals (frequencies (into [] cat (map points-in-line lines))))))
+      diagonals?
+      (map vector (smart-range x1 x2) (smart-range y1 y2)))))
+
+(map (fn [diagonals?]
+       (->> (map (partial points-in-line diagonals?) lines)
+            (into [] cat)
+            frequencies vals (filter #(> % 1)) count))
+     [false true])
