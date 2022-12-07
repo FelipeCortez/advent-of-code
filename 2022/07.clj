@@ -34,7 +34,6 @@
         (recur other-cmds
                (assoc m :sizes
                       (reduce (fn [sizes path]
-                                (println sizes path du)
                                 (update sizes path (fnil + 0) du))
                               (:sizes m)
                               (rest (reductions conj [] (:path m)))))))
