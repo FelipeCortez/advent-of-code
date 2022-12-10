@@ -20,8 +20,8 @@
    (->> (reduce (fn [display cycle]
                   (let [x (get simulation cycle)]
                     (conj display
-                          (if (<= (dec x) (mod cycle 40) (+ x 2))
-                            "|"
+                          (if (<= (dec x) (mod cycle 40) (inc x))
+                            "x"
                             " "))))
                 []
                 (range 240))
