@@ -2,7 +2,7 @@
   (:require [clojure.string :as str]
             [clojure.test :refer [deftest is testing]]))
 
-(defn compare-pair [[coll1 coll2]]
+(defn compare-pair [coll1 coll2]
   (loop [coll1 coll1, coll2 coll2]
     (let [[x1 & rest1] coll1
           [x2 & rest2] coll2]
@@ -29,7 +29,7 @@
         (recur (list x1) x2)
 
         (and (sequential? x1) (sequential? x2))
-        (case (compare-pair [x1 x2])
+        (case (compare-pair x1 x2)
           0 (recur rest1 rest2)
           -1 -1
           1 1)))))
@@ -38,21 +38,20 @@
      (str/split-lines)
      (partition 2 3)
      (map (partial map read-string))
-     (map-indexed (fn [idx pair] (if (neg? (compare-pair pair))
-                                   (inc idx)
-                                   0)))
+     (keep-indexed (fn [idx pair] (when (neg? (apply compare-pair pair))
+                                    (inc idx))))
      (reduce +))
 
-(->> (slurp "2022/13.sample.in")
+(->> (slurp "2022/13.in")
      (str/split-lines)
      (partition 2 3)
      (mapcat (partial map read-string))
      (concat [[[2]] [[6]]])
-     #_(sort #(compare ))
-     #_#_(map-indexed (fn [idx pair] (if (compare-pair pair)
-                                   (inc idx)
-                                   0)))
-     (reduce +))
+     (sort compare-pair)
+     (keep-indexed (fn [idx val]
+                     (when (#{[[2]] [[6]]} val)
+                       (inc idx))))
+     (reduce *))
 
 (deftest compare-pairs-test
   (is (compare-pair [[1,1,3,1,1]
