@@ -38,20 +38,19 @@
      (str/split-lines)
      (partition 2 3)
      (map (partial map read-string))
-     (keep-indexed (fn [idx pair] (when (neg? (apply compare-pair pair))
+     ((juxt #(->> %
+                  (keep-indexed (fn [idx pair]
+                                  (when (neg? (apply compare-pair pair))
                                     (inc idx))))
-     (reduce +))
-
-(->> (slurp "2022/13.in")
-     (str/split-lines)
-     (partition 2 3)
-     (mapcat (partial map read-string))
-     (concat [[[2]] [[6]]])
-     (sort compare-pair)
-     (keep-indexed (fn [idx val]
-                     (when (#{[[2]] [[6]]} val)
-                       (inc idx))))
-     (reduce *))
+                  (reduce +))
+            #(->> %
+                  (into [] cat)
+                  (concat [[[2]] [[6]]])
+                  (sort compare-pair)
+                  (keep-indexed (fn [idx val]
+                                  (when (#{[[2]] [[6]]} val)
+                                    (inc idx))))
+                  (reduce *)))))
 
 (deftest compare-pairs-test
   (is (compare-pair [[1,1,3,1,1]
