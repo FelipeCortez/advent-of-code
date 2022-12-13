@@ -51,28 +51,3 @@
                                   (when (#{[[2]] [[6]]} val)
                                     (inc idx))))
                   (reduce *)))))
-
-(deftest compare-pairs-test
-  (is (compare-pair [[1,1,3,1,1]
-                     [1,1,5,1,1]]))
-
-  (is (compare-pair [[[1], [2,3,4]]
-                     [[1], 4]]))
-
-  (is (not (compare-pair [[9]
-                          [[8,7,6]]])))
-
-  (is (compare-pair [[[4,4],4,4]
-                     [[4,4],4,4,4]]))
-
-  (is (not (compare-pair [[7,7,7,7]
-                          [7,7,7]])))
-
-  (is (compare-pair [[]
-                     [3]]))
-
-  (is (not (compare-pair [[[]]
-                          []])))
-
-  (is (not (compare-pair [[1,[2,[3,[4,[5,6,7]]]],8,9]
-                          [1,[2,[3,[4,[5,6,0]]]],8,9]]))))
