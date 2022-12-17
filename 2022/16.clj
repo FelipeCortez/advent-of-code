@@ -24,7 +24,6 @@
                    (let [distances
                          (reduce (fn [distances distance-key]
                                    (let [the-other (other distance-key neighbor)]
-                                     ;; #dbg ^{:break/when (#{:CC :EE} the-other)}
                                      the-other
                                      (if (or (= the-other current)
                                              (distances #{current the-other}))
@@ -39,10 +38,12 @@
          (conj visited current)))
       distances)))
 
+(def ^:dynamic *minutes* 30)
+
 (defn calculate-one [sequence]
   (let [one sequence]
     (loop [current :AA
-           minutes 30
+           minutes *minutes*
            to-visit sequence
            sum 0]
       (let [move-to (first to-visit)]
@@ -59,7 +60,7 @@
 (defn points-available [sequence]
   (let [one sequence]
     (loop [current :AA
-           minutes 30
+           minutes *minutes*
            to-visit sequence
            sum 0]
       (let [move-to (first to-visit)]
@@ -84,28 +85,33 @@
                    (+ sum (* minutes (-> valves move-to :flow))))))))))
 
 (defn explore [sequence s !max]
+  (let [points (calculate-one sequence)]
+    (when (> points @!max)
+      (reset! !max points))
+    (reset! !best sequence))
+
   (doseq [valve s]
-    (let [points (calculate-one sequence)]
-      (when (> points @!max)
-        (reset! !max points)))
-    (when (> (points-available sequence) @!max)
+    (when (>= (points-available sequence) @!max)
       (explore (conj sequence valve)
                (disj s valve)
                !max))))
 
+;; heuristic for fetching the most promising valves first
+(defn flow+alphanumeric [k]
+  [(* (get-in valves [k :flow])
+      (- 30
+         (fromto->distance #{k :AA})))
+   k])
+
 (defn calculate-all []
   (let [!max (atom 0)]
     (explore []
-             (into (sorted-set-by #(let [flow+alpha
-                                         (fn [k]
-                                           [(* (get-in valves [k :flow])
-                                               (- 30
-                                                  (fromto->distance #{k :AA})))
-                                            k])]
-                                     (compare (flow+alpha %2) (flow+alpha %1))))
+             (into (sorted-set-by #(compare (flow+alphanumeric %2)
+                                            (flow+alphanumeric %1)))
                    (set (filter (fn [k] (pos? (:flow (get valves k))))
                                 (keys valves))))
-             !max))
-  @!max)
+             !max)
+    @!max))
 
-(calculate-all)
+(binding [*minutes* 30]
+  (calculate-all))
