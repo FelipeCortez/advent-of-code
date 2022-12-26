@@ -114,8 +114,86 @@
                  \.     0xFFFF00FF
                  \#     0xFF00FFFF)))))))
 
-(def !pos (atom [35 111]))
-(def !dir (atom \N))
+(defn rangei [from to]
+  (if (< from to)
+    (range from (inc to))
+    (range from (dec to) -1)))
+
+(defn range-2d [[i1 j1] [i2 j2]]
+  (if (= i1 i2)
+    (mapv vector (repeat i1)    (rangei j1 j2))
+    (mapv vector (rangei i1 i2) (repeat j1))))
+
+;; reduces from [i j] to [j i] because I'm stupid
+(def portals
+  (reduce (fn [s [[from-dir from1 to1] [to-dir from2 to2]]]
+            (merge s
+                   (into {}
+                         (mapv (fn [[i1 j1] [i2 j2]]
+                                 [[from-dir [j1 i1]]
+                                  [to-dir   [j2 i2]]])
+                               (range-2d from1 to1)
+                               (range-2d from2 to2)))))
+          {}
+          [[[\N [50 0] [99 0]]      [\E [0 150] [0 199]]]   ;; 1->6
+           [[\W [50 0] [50 49]]     [\E [0 149] [0 100]]]   ;; 1->5
+           [[\E [149 0] [149 99]]   [\W [99 149] [99 100]]] ;; 2->4
+           [[\S [100 49] [149 49]]  [\W [99 50] [99 99]]] ;; 2->3
+           [[\N [100 0] [149 0]]    [\N [0 199] [49 199]]]  ;; 2->6
+           [[\W [50 50] [50 99]]  [\S [0 100] [49 100]]]  ;; 3->5
+           [[\E [99 50] [99 99]]  [\N [100 49] [149 99]]] ;; 3->2
+           [[\S [50 149] [99 149]]  [\W [49 150] [49 199]]] ;; 4->6
+           [[\E [99 100] [99 149]]  [\W [149 49] [149 0]]]  ;; 4->2
+           [[\N [0 100] [49 100]]   [\E [50 50] [50 99]]] ;; 5->3
+           [[\W [0 100] [0 149]]    [\E [50 49] [50 0]]]    ;; 5->1
+           [[\E [49 150] [49 199]]  [\N [50 149] [99 149]]] ;; 6->4
+           [[\W [0 150] [0 199]]    [\S [50 0] [99 0]]]     ;; 6->1
+           [[\S [0 199] [49 199]]   [\S [100 0] [149 0]]]]  ;; 6->2
+          ))
+
+(defn wrap-portal [dir pos] (get portals [dir pos]))
+
+(declare redraw!)
+
+(defn simulate' [[m instructions]]
+  (loop [position (starting-position m)
+         direction starting-direction
+         instructions instructions]
+    (let [[instruction & instructions] instructions]
+      (cond
+        (number? instruction)
+        (let [[new-position new-direction]
+              (reduce (fn [[position direction] _]
+                        (let [[new-direction new-position]
+                              (or (wrap-portal direction position)
+                                  [direction
+                                   (m+ position (dir->delta direction))])]
+                          (case (get-in m new-position)
+                            \# [position direction]
+                            \. [new-position new-direction])))
+                      [position direction]
+                      (range instruction))]
+          (recur
+           new-position
+           new-direction
+           instructions))
+
+        (char? instruction)
+        (recur position
+               (case instruction
+                 \R (cw direction)
+                 \L (ccw direction))
+               instructions)
+
+
+        :else
+        (let [[j i] position]
+          [(+ (* 1000 (inc j))
+              (* 4 (inc i))
+              ({\E 0, \S 1, \W 2, \N 3} direction))])))))
+
+(def !pos (atom (starting-position m)))
+(def !dir (atom \E))
 
 (defn move! []
   (let [new-position (wrap m (m+ @!pos (dir->delta @!dir))
@@ -123,13 +201,16 @@
     (when (= \. (get-in m new-position))
       (reset! !pos new-position))))
 
-(comment
-  (do
-    (move!)
-    (redraw! @!pos))
-  (swap! !dir cw)
-  (swap! !dir ccw)
-  )
+(defn move!' []
+  (let [[new-direction
+         new-position]
+        (or (wrap-portal @!dir @!pos)
+            [@!dir
+             (m+ @!pos (dir->delta @!dir))])]
+    (when (= \. (get-in m new-position))
+      (reset! !pos new-position)
+      (reset! !dir new-direction))))
+
 
 (require '[io.github.humbleui.ui :as ui]
          '[io.github.humbleui.paint :as paint])
@@ -140,13 +221,12 @@
      {:on-key-down #(case (:key %)
                       :left (swap! !dir ccw)
                       :right (swap! !dir cw)
-                      :up   (move!))}
+                      :up   (move!'))}
      (ui/with-bounds ::bounds
          (ui/dynamic
           ctx [height (:height (::bounds ctx))
                width (:width (::bounds ctx))
-               pos @!pos]
-          (println @!pos)
+               #_#_pos @!pos]
           (let [grid (color-grid nil pos)
                 [m _] m+instructions]
             (ui/default-theme
@@ -173,9 +253,11 @@
                                               (ui/label "" #_(str i "_" j))))])))]))))))))))))
 
 (comment
-  (def animate (future (simulate m+instructions)))
+  (def animate (future (simulate' m+instructions)))
   (future-cancel animate)
   (redraw! [0 0])
+
+  (simulate' m+instructions)
 
   (ui/start-app!
    (ui/window
