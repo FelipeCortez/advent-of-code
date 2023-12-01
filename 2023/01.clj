@@ -6,22 +6,21 @@
 
 (->> (slurp "2023/01.in")
      (str/split-lines)
-     (map #(vec (map parse-long (re-seq #"\d" %))))
-     (map (juxt first peek))
+     (map (comp (juxt first peek)
+                #(vec (map parse-long (re-seq #"\d" %)))))
      (reduce (fn [sum [a b]] (+ sum (* 10 a) b)) 0))
 
 ;; part 2
 
-(def esrever #(apply str (reverse %)))
-(def match->num (into {} (map (fn [x] [(cl-format nil "~R" x) (str x)])) (range 1 10)))
-(def rmatch->num (into {} (map (fn [x] [(esrever (cl-format nil "~R" x)) (str x)])) (range 1 10)))
-(def pattern-disj (fn [coll] (re-pattern (format "(?:%s)" (str/join (interpose "|" coll))))))
+(def match->num  (into {} (map (fn [x] [(cl-format nil "~R" x)               (str x)])) (range 1 10)))
+(def rmatch->num (into {} (map (fn [x] [(str/reverse (cl-format nil "~R" x)) (str x)])) (range 1 10)))
+(def ->disjunction-pattern (fn [coll] (re-pattern (format "(?:%s)" (str/join "|" coll)))))
 
-(defn calc-one-line [line]
-  [(parse-long (re-find #"\d" (str/replace-first line           (pattern-disj (keys match->num))  match->num)))
-   (parse-long (re-find #"\d" (str/replace-first (esrever line) (pattern-disj (keys rmatch->num)) rmatch->num)))])
+(defn first+last [line]
+  [(parse-long (re-find #"\d" (str/replace-first line               (->disjunction-pattern (keys match->num))  match->num)))
+   (parse-long (re-find #"\d" (str/replace-first (str/reverse line) (->disjunction-pattern (keys rmatch->num)) rmatch->num)))])
 
 (->> (slurp "2023/01.in")
      (str/split-lines)
-     (map calc-one-line)
+     (map first+last)
      (reduce (fn [sum [a b]] (+ sum (* 10 a) b)) 0))
