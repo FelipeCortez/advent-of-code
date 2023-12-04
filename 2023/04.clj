@@ -31,14 +31,10 @@
           cards
           (range (inc idx) (inc (+ idx winning)))))
 
-(let [i (volatile! -1)
-      cards (->> (slurp "2023/04.in")
+(let [cards (->> (slurp "2023/04.in")
                  (str/split-lines)
                  (mapv (fn [line] {:winning (count-winning line), :count 1})))]
-  (->> (reduce (fn [cards _]
-                 (vswap! i inc)
-                 (let [{:keys [winning count]} (get cards @i)]
-                   (beget-cards @i winning count cards)))
+  (->> (reduce (fn [cards idx] (let [c (get cards idx)] (beget-cards idx (:winning c) (:count c) cards)))
                cards
                (range (count cards)))
        (map :count)
