@@ -9,12 +9,16 @@
 (def se (partial bounded-iterate (fn [[i j]] [(inc i) (dec j)])))
 (def t-edge (e [0 0]))
 (def l-edge (s [0 0]))
-(def tl-edges (into #{} (concat t-edge l-edge)))
-(def rb-edges (concat (e [0 0]) (s [0 (dec size)])))
+(def r-edge (s [0 (dec size)]))
+(def tl-edges (concat t-edge l-edge))
+(def rb-edges (concat t-edge r-edge))
 (def lines
-   (let [to (into #{} cat [(mapv sw tl-edges) (mapv se rb-edges) (mapv e l-edge) (mapv s t-edge)])
-         fro (mapv rseq to)]
-     (into #{} cat [to fro])))
+  (let [to (into #{} cat [(mapv sw tl-edges)
+                          (mapv se rb-edges)
+                          (mapv e l-edge)
+                          (mapv s t-edge)])
+        fro (mapv rseq to)]
+    (into #{} cat [to fro])))
 
 (defn char-at [pos] (get-in grid pos))
 (def line->word #(apply str (map char-at %)))
