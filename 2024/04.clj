@@ -11,10 +11,10 @@
 (def l-edge (s [0 0]))
 (def r-edge (s [0 (dec size)]))
 (def tl-edges (concat t-edge l-edge))
-(def rb-edges (concat t-edge r-edge))
+(def tr-edges (concat t-edge r-edge))
 (def lines
   (let [to (into #{} cat [(mapv sw tl-edges)
-                          (mapv se rb-edges)
+                          (mapv se tr-edges)
                           (mapv e l-edge)
                           (mapv s t-edge)])
         fro (mapv rseq to)]
