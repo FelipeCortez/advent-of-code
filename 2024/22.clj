@@ -15,7 +15,6 @@
 (def initial-secrets (map parse-long (str/split-lines (slurp "2024/22.in"))))
 
 (reduce + (pmap secrete-2000th initial-secrets))
-;; => 12759339434
 
 (def test-sequence [1 2 3 2024])
 (defn assoc-nx [m k v] (if (get m k) m (assoc m k v)))
@@ -30,6 +29,8 @@
                (partition 5 1)
                (pmap (juxt differences (comp unit last))))))
 
-(apply max
-       (vals (reduce (partial merge-with +)
-                     (pmap seq->price initial-secrets))))
+(->> initial-secrets
+     (pmap seq->price)
+     (reduce (partial merge-with +))
+     vals
+     (apply max))
